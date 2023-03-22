@@ -1,7 +1,7 @@
-#include "example/dequeue.h"
+#include "example/deque.h"
 
 int main() {
-    createQueueTest();
+    createDequeAndPthreadTest();
     printf("=================================\n");
     testTraverse();
 
