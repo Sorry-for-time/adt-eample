@@ -96,9 +96,9 @@ void cleanupQueueNode(DequeueNode restrict dequeueNode) {
 }
 
 /**
- * 取得队首元素(线程安全)
+ * 移除队首元素并返回
  * @param dequeue 双端队列实例
- * @return 首节点
+ * @return 队首节点或者 `NULL`
  */
 DequeueNode poll(Dequeue restrict dequeue) {
     for (;;) {
@@ -130,27 +130,74 @@ DequeueNode poll(Dequeue restrict dequeue) {
 }
 
 /**
+ * 取得队首元素(这个方法不会删除队首节点)
+ * @param dequeue  双端队列实例
+ * @return 队首元素或者 `NULL`
+ */
+DequeueNode peek(Dequeue restrict dequeue) {
+    for (;;) {
+        if (dequeue != NULL) {
+            if (dequeue->mutex) {
+                dequeue->mutex = false;
+                DequeueNode drawback = NULL;
+
+                if (dequeue->head != NULL) {
+                    drawback = dequeue->head;
+                }
+
+                dequeue->mutex = true;
+                return drawback;
+            }
+        } else {
+            return NULL;
+        }
+    }
+}
+
+/**
+ * 消费一个队列双端节点
+ * @param dequeue 双端队列示例
+ * @return `null_ptr`
+ */
+void *consumeQueueNode(void *restrict dequeue) {
+    while (((Dequeue) dequeue)->size) {
+        DequeueNode headNode = poll(dequeue);
+        printf("thread->%llu, current queue size: %d; -> current tmpNode queueNode address is: %p; data is: %d\n",
+               pthread_self(),
+               ((Dequeue) dequeue)->size, headNode, *(int *) headNode->data);
+        cleanupQueueNode(headNode);
+    }
+    return NULL;
+};
+
+/**
  * @brief 测试用例
  */
 void createQueueTest(void) {
     Dequeue dequeue = initialDequeue();
-    for (int i = 1; i <= 100; ++i) {
+    for (int i = 1; i <= 10; ++i) {
         int *restrict data = calloc(1, sizeof(int));
         *data = i;
         DequeueNode restrict tmpNode = createQueueNode(data);
         add(dequeue, tmpNode);
     }
 
-    DequeueNode tmp = poll(dequeue);
-    printf("current tmpNode queueNode address is: %p; data is: %d\n", tmp, *(int *) tmp->data);
-    cleanupQueueNode(tmp);
-    printf("the queue size is: %d\n", dequeue->size);
-
-    DequeueNode current = dequeue->head;
-    while (current != NULL) {
-        int d = *((int *) current->data);
-        printf("current queueNode address is: %p; data domain value is: %d\n", current, d);
-        current = current->next;
+    DequeueNode head = peek(dequeue);
+    if (head) {
+        printf("the current queue size is: %d, head value is: %d\n", dequeue->size, *(int *) head->data);
     }
+    printf("--------------------------------------------------\n");
+
+    pthread_t id1, id2, id3;
+    pthread_create(&id1, NULL, consumeQueueNode, dequeue);
+    pthread_create(&id2, NULL, consumeQueueNode, dequeue);
+    pthread_create(&id3, NULL, consumeQueueNode, dequeue);
+
+    void *result;
+    pthread_join(id1, &result);
+    pthread_join(id2, &result);
+    pthread_join(id3, &result);
+
     releaseDequeue(dequeue);
+    printf_s("everything done!\n");
 }
