@@ -42,11 +42,19 @@ typedef struct dequeue_define {
 
 DequeueNode createQueueNode(void *restrict data);
 
-void cleanupQueueNode(DequeueNode restrict dequeueNode);
-
 Dequeue initialDequeue(void);
 
+void add(Dequeue dequeue, DequeueNode dequeueNode);
+
 void releaseDequeue(Dequeue dequeue);
+
+void cleanupQueueNode(DequeueNode restrict dequeueNode);
+
+DequeueNode poll(Dequeue restrict dequeue);
+
+DequeueNode peek(Dequeue restrict dequeue);
+
+void *consumeQueueNode(void *restrict dequeue);
 
 void createQueueTest(void);
 
