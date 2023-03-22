@@ -58,4 +58,8 @@ void *consumeQueueNode(void *restrict dequeue);
 
 void createQueueTest(void);
 
+void TraverseDequeue(Dequeue restrict dequeue, void(*accept)(DequeueNode restrict node));
+
+void testTraverse(void);
+
 #endif //ADT_EXAMPLE_DEQUEUE_H

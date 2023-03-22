@@ -77,8 +77,7 @@ void releaseDequeue(Dequeue dequeue) {
         while (NULL != current) {
             DequeueNode tmp = current;
             current = current->next;
-            free(tmp->data);
-            free(tmp);
+            cleanupQueueNode(tmp);
         }
         free(dequeue);
     }
@@ -155,6 +154,21 @@ DequeueNode peek(Dequeue restrict dequeue) {
 }
 
 /**
+ * 遍历双端队列
+ * @param dequeue 双端队列示例
+ * @param accept 消费函数
+ */
+void TraverseDequeue(Dequeue restrict dequeue, void(*accept)(DequeueNode restrict node)) {
+    if (dequeue) {
+        DequeueNode restrict current = dequeue->head;
+        while (current != NULL) {
+            accept(current);
+            current = current->next;
+        }
+    }
+}
+
+/**
  * 消费一个队列双端节点
  * @param dequeue 双端队列示例
  * @return `null_ptr`
@@ -200,4 +214,27 @@ void createQueueTest(void) {
 
     releaseDequeue(dequeue);
     printf_s("everything done!\n");
+}
+
+/**
+ *节点消费者测试函数
+ * @param node 节点实例
+ */
+void tmpNodeAcceptor(DequeueNode restrict node) {
+    printf("current value is: %d\n", *(int *) node->data);
+}
+
+/**
+ * 测试遍历双端队列
+ */
+void testTraverse(void) {
+    Dequeue dequeue = initialDequeue();
+    for (int i = 1; i <= 10; ++i) {
+        int *restrict data = calloc(1, sizeof(int));
+        *data = i;
+        DequeueNode restrict tmpNode = createQueueNode(data);
+        add(dequeue, tmpNode);
+    }
+    TraverseDequeue(dequeue, tmpNodeAcceptor);
+    releaseDequeue(dequeue);
 }
