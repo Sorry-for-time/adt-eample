@@ -168,7 +168,7 @@ void *consumeQueueNode(void *restrict dequeue) {
         cleanupQueueNode(headNode);
     }
     return NULL;
-};
+}
 
 /**
  * @brief 测试用例
